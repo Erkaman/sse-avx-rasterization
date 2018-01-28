@@ -319,11 +319,6 @@ void rasterizeTriangleAVX(
 	}
 	float whitecolorfloat = filledbitsfloat;
 
-	/*
-	We'll be looping over all pixels in the AABB, and rasterize the pixels within the triangle. The AABB has been
-	extruded on the x-axis, and aligned to 16bytes.
-	This is necessary since _mm_store_ps can only write to 16-byte aligned addresses.
-	*/
 	const float intAminx = (float)rounddownAligned(int((0.5f + 0.5f * amin.x)* fbWidth), 8); // extrude
 	const float intAmaxx = (float)roundupAligned(int((0.5f + 0.5f * amax.x)* fbWidth), 8); // extrude
 	const float intAminy = (float)((0.5f + 0.5f * amin.y)* fbHeight);
@@ -357,10 +352,6 @@ void rasterizeTriangleAVX(
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w0, zero, _CMP_NLT_US));
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w1, zero, _CMP_NLT_US));
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w2, zero, _CMP_NLT_US));
-
-
-			//writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w0, zero, _CMP_NLT_US));
-
 
 			unsigned int iBuf = unsigned int(iy * fbWidth + ix);
 
