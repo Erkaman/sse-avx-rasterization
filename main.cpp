@@ -335,7 +335,6 @@ void rasterizeTriangleAVX(
 		__m256 py = _mm256_add_ps(minusone, _mm256_mul_ps(_mm256_set1_ps(iy), _mm256_set1_ps(doublePixelHeight)));
 
 		for (float ix = intAminx; ix <= intAmaxx; ix += 8.0f) {
-			// this `px` register contains the x-coords of four pixels in a row.
 			// we map from [0,width] to [-1,+1]
 			__m256 px = _mm256_add_ps(minusone, _mm256_mul_ps(
 				_mm256_set_ps(ix + 7.0f, ix + 6.0f, ix + 5.0f, ix + 4.0f, ix + 3.0f, ix + 2.0f, ix + 1.0f, ix + 0.0f), _mm256_set1_ps(doublePixelWidth)));
@@ -344,11 +343,9 @@ void rasterizeTriangleAVX(
 			__m256 w1 = edgeFunctionAVX(vcoords[2], vcoords[0], px, py);
 			__m256 w2 = edgeFunctionAVX(vcoords[0], vcoords[1], px, py);
 
-			// the default bitflag, results in all the four pixels being overwritten.
 			__m256 writeFlag = _mm256_set1_ps(filledbitsfloat);
 
 			// the results of the edge tests are used to modify our bitflag.
-
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w0, zero, _CMP_NLT_US));
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w1, zero, _CMP_NLT_US));
 			writeFlag = _mm256_and_ps(writeFlag, _mm256_cmp_ps(w2, zero, _CMP_NLT_US));
@@ -358,16 +355,6 @@ void rasterizeTriangleAVX(
 			__m256 newBufferVal = _mm256_set1_ps(whitecolorfloat);
 			__m256 origBufferVal = _mm256_load_ps((const float*)framebuffer + iBuf);
 
-			/*
-			We only want to write to pixels that are inside the triangle.
-			However, implementing such a conditional write is tricky when dealing SIMD.
-
-			We implement this by using a bitflag. This bitflag determines which of the four floats in __m128 should
-			just write the old value to the buffer(meaning that the pixel is NOT actually rasterized),
-			and which should overwrite the current value in the buffer(meaning that the pixel IS rasterized).
-
-			This is implemented by some bitwise manipulation tricks.
-			*/
 			_mm256_store_ps((float*)(framebuffer)+iBuf,
 				_mm256_or_ps(
 					_mm256_and_ps(writeFlag, newBufferVal),
