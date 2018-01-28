@@ -33,7 +33,7 @@ use different headers to access AVX and SSE, and replace `_aligned_malloc` with 
 
 // this macro controls rasterization mode.
 // if 0, then normal(no vector instructions),
-// if 0, then SSE
+// if 1, then SSE
 // if 2, then AVX
 #define RASTERIZE_MODE 0
 
